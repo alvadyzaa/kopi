@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resepkuu — Buku Resep</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --border: 240 5.9% 90%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --accent: 240 4.8% 95.9%;
+    --ring: 240 5% 64.9%;
+    --brand: 25 45% 35%;
+    --radius: 0.75rem;
+    --shadow: 0 10px 30px -12px hsl(240 10% 4% / .18);
+  }
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 5.5%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --border: 240 3.7% 15.9%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --accent: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --brand: 30 55% 60%;
+    --shadow: 0 10px 30px -12px hsl(0 0% 0% / .6);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    transition: background .3s ease, color .3s ease;
+  }
+  .wrap { width: min(1120px, 92%); margin-inline: auto; }
+
+  /* reveal — pure CSS (no JS dependency, so content can never get stuck invisible) */
+  @keyframes rise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes pop { from { opacity: 0; transform: translateY(24px) scale(.97); } to { opacity: 1; transform: none; } }
+  [data-reveal] { animation: rise .7s cubic-bezier(.22,1,.36,1) both; }
+  .hero h1[data-reveal] { animation-delay: .08s; }
+  .hero p[data-reveal] { animation-delay: .16s; }
+  .hero .stats[data-reveal] { animation-delay: .24s; }
+  .toolbar [data-reveal] { animation-delay: .3s; }
+  .card[data-reveal] { animation-duration: .45s; }
+
+  /* ---------- Header ---------- */
+  .site-header {
+    position: sticky; top: 0; z-index: 50;
+    background: hsl(var(--background) / .75);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; height: 62px; gap: 1rem; }
+  .brand { display: flex; align-items: center; gap: .65rem; font-weight: 700; letter-spacing: -.02em; }
+  .brand .logo {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, hsl(25 45% 30%), hsl(30 55% 58%));
+    color: #fff; box-shadow: 0 4px 14px -4px hsl(25 45% 30% / .7);
+  }
+  .brand small { display: block; font-size: .68rem; font-weight: 500; color: hsl(var(--muted-foreground)); letter-spacing: .04em; text-transform: uppercase; }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+    height: 2.3rem; padding: 0 .9rem; border-radius: calc(var(--radius) - 3px);
+    font: inherit; font-size: .85rem; font-weight: 500; cursor: pointer;
+    border: 1px solid transparent; background: transparent; color: inherit;
+    transition: background .15s, border-color .15s, color .15s, opacity .15s;
+  }
+  .btn:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+  .btn-outline { border-color: hsl(var(--border)); background: hsl(var(--card)); }
+  .btn-outline:hover { background: hsl(var(--accent)); }
+  .btn-ghost:hover { background: hsl(var(--accent)); }
+  .icon-btn { width: 2.3rem; height: 2.3rem; padding: 0; }
+
+  /* ---------- Hero ---------- */
+  .hero { position: relative; overflow: hidden; padding: clamp(3rem, 9vw, 5.5rem) 0 clamp(2.25rem, 6vw, 3.5rem); text-align: center; }
+  .hero::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(620px 320px at 50% -8%, hsl(var(--brand) / .16), transparent 70%);
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: .45rem;
+    border: 1px solid hsl(var(--border)); background: hsl(var(--card));
+    border-radius: 999px; padding: .35rem .85rem;
+    font-size: .74rem; font-weight: 500; color: hsl(var(--muted-foreground));
+  }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: hsl(var(--brand)); }
+  .hero h1 { position: relative; margin: 1.1rem 0 .85rem; font-size: clamp(2.1rem, 6.6vw, 3.5rem); line-height: 1.04; letter-spacing: -.035em; font-weight: 800; }
+  .hero h1 em { font-style: normal; color: hsl(var(--brand)); }
+  .hero p { position: relative; max-width: 56ch; margin: 0 auto; color: hsl(var(--muted-foreground)); font-size: clamp(.95rem, 2.4vw, 1.08rem); }
+  .stats { position: relative; display: flex; justify-content: center; gap: clamp(1.25rem, 5vw, 3rem); margin-top: 2rem; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat b { display: block; font-size: clamp(1.4rem, 4vw, 1.9rem); font-weight: 800; letter-spacing: -.03em; }
+  .stat span { font-size: .76rem; color: hsl(var(--muted-foreground)); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ---------- Toolbar ---------- */
+  .toolbar { position: sticky; top: 62px; z-index: 40; padding: 1rem 0; background: hsl(var(--background) / .85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+  .toolbar-row { display: flex; flex-direction: column; gap: .9rem; }
+  .search { position: relative; width: 100%; max-width: 440px; }
+  .search svg { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); color: hsl(var(--muted-foreground)); pointer-events: none; }
+  .search input {
+    width: 100%; height: 2.7rem; border-radius: var(--radius);
+    border: 1px solid hsl(var(--border)); background: hsl(var(--card));
+    padding: 0 1rem 0 2.6rem; font: inherit; font-size: .9rem; color: inherit;
+    outline: none; transition: border-color .15s, box-shadow .15s;
+  }
+  .search input::placeholder { color: hsl(var(--muted-foreground)); }
+  .search input:focus { border-color: hsl(var(--ring)); box-shadow: 0 0 0 3px hsl(var(--ring) / .22); }
+  .actions { display: flex; gap: .5rem; }
+
+  /* ---------- Search button (opens palette) ---------- */
+  .search-btn {
+    display: flex; align-items: center; gap: .7rem;
+    width: 100%; max-width: 440px; height: 2.7rem; border-radius: var(--radius);
+    border: 1px solid hsl(var(--border)); background: hsl(var(--card));
+    padding: 0 .8rem 0 .85rem; font: inherit; font-size: .9rem; cursor: pointer;
+    color: hsl(var(--muted-foreground)); text-align: left;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+  }
+  .search-btn:hover { background: hsl(var(--accent)); }
+  .search-btn:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+  .search-btn span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .search-btn kbd, .pal kbd {
+    font: inherit; font-size: .72rem; font-weight: 600;
+    border: 1px solid hsl(var(--border)); background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground)); border-radius: 6px; padding: .1rem .45rem;
+  }
+
+  /* ---------- Search palette ---------- */
+  .pal-overlay {
+    position: fixed; inset: 0; z-index: 110; display: flex; justify-content: center;
+    align-items: flex-start; padding: 12vh 1rem 1rem;
+    background: hsl(240 10% 4% / .55); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+    animation: fade .15s ease both;
+  }
+  .pal-overlay[hidden] { display: none; }
+  .pal {
+    width: 100%; max-width: 600px; overflow: hidden;
+    background: hsl(var(--card)); border: 1px solid hsl(var(--border));
+    border-radius: calc(var(--radius) + 4px);
+    box-shadow: 0 30px 70px -25px hsl(0 0% 0% / .5);
+    animation: pop .22s cubic-bezier(.22,1,.36,1) both;
+  }
+  .pal-input-row { display: flex; align-items: center; gap: .7rem; padding: 0 1rem; border-bottom: 1px solid hsl(var(--border)); }
+  .pal-input-row svg { color: hsl(var(--muted-foreground)); flex-shrink: 0; }
+  .pal-input-row input {
+    flex: 1; height: 3.5rem; border: 0; outline: 0; background: transparent;
+    font: inherit; font-size: 16px; color: inherit;
+  }
+  .pal-input-row input::placeholder { color: hsl(var(--muted-foreground)); }
+  .pal-count { padding: .6rem 1rem .2rem; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: hsl(var(--muted-foreground)); }
+  .pal-list { max-height: min(50vh, 340px); overflow-y: auto; padding: .4rem .5rem .5rem; }
+  .pal-row {
+    display: flex; align-items: center; gap: .8rem; width: 100%;
+    padding: .65rem .7rem; border: 0; border-radius: 10px; cursor: pointer;
+    background: transparent; color: inherit; font: inherit; text-align: left;
+  }
+  .pal-row .emoji { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: hsl(var(--brand) / .1); color: hsl(var(--brand)); flex-shrink: 0; }
+  .pal-row .t { flex: 1; min-width: 0; }
+  .pal-row .t b { display: block; font-size: .93rem; font-weight: 650; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pal-row .t span { display: block; font-size: .75rem; color: hsl(var(--muted-foreground)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pal-row > svg { color: hsl(var(--muted-foreground)); flex-shrink: 0; }
+  .pal-row.active { background: hsl(var(--accent)); }
+  .pal-row.active > svg { color: hsl(var(--brand)); }
+  .pal-empty { padding: 2rem 1rem; text-align: center; color: hsl(var(--muted-foreground)); font-size: .88rem; }
+  .pal-foot { display: flex; gap: 1rem; padding: .6rem 1rem; border-top: 1px solid hsl(var(--border)); font-size: .72rem; color: hsl(var(--muted-foreground)); }
+  .pal-foot span { display: inline-flex; align-items: center; gap: .3rem; }
+
+  /* ---------- Back to top ---------- */
+  #toTop {
+    position: fixed; right: 1.1rem; bottom: 1.1rem; z-index: 60;
+    width: 2.75rem; height: 2.75rem; border-radius: 999px; cursor: pointer;
+    display: grid; place-items: center;
+    background: hsl(var(--card)); color: hsl(var(--brand));
+    border: 1px solid hsl(var(--brand) / .35);
+    box-shadow: var(--shadow);
+    opacity: 0; transform: translateY(12px); pointer-events: none;
+    transition: opacity .25s, transform .25s, background .15s;
+  }
+  #toTop:hover { background: hsl(var(--brand)); color: #fff; border-color: hsl(var(--brand)); }
+  #toTop:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+  #toTop.show { opacity: 1; transform: none; pointer-events: auto; }
+
+  .tabs { display: flex; gap: .5rem; overflow-x: auto; padding-bottom: .15rem; scrollbar-width: none; -ms-overflow-style: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    display: inline-flex; align-items: center; gap: .4rem; white-space: nowrap;
+    height: 2.25rem; padding: 0 .9rem; border-radius: 999px; cursor: pointer;
+    border: 1px solid hsl(var(--border)); background: hsl(var(--card));
+    color: hsl(var(--muted-foreground)); font: inherit; font-size: .83rem; font-weight: 500;
+    transition: .15s;
+  }
+  .tab:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
+  .tab.active { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border-color: hsl(var(--primary)); }
+  .tab .n { font-size: .72rem; opacity: .7; }
+  .tab svg { flex-shrink: 0; }
+
+  /* ---------- Grid ---------- */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 275px), 1fr)); gap: 1rem; padding-bottom: 4rem; }
+  .card {
+    position: relative; display: flex; flex-direction: column; gap: .75rem;
+    padding: 1.15rem; text-align: left; cursor: pointer;
+    border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+    background: hsl(var(--card)); color: inherit; font: inherit;
+    transition: border-color .2s, box-shadow .2s, transform .2s;
+  }
+  .card:hover { border-color: hsl(var(--ring)); box-shadow: var(--shadow); transform: translateY(-3px); }
+  .card:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+  .card .top { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; }
+  .card .emoji {
+    width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+    background: hsl(var(--brand) / .1); color: hsl(var(--brand)); flex-shrink: 0;
+  }
+  .cat-badge {
+    font-size: .68rem; font-weight: 600; letter-spacing: .02em;
+    color: hsl(var(--brand)); background: hsl(var(--brand) / .1);
+    border: 1px solid hsl(var(--brand) / .22); padding: .2rem .55rem; border-radius: 999px;
+  }
+  .card h3 { margin: 0; font-size: 1rem; font-weight: 650; letter-spacing: -.015em; }
+  .card p { margin: 0; font-size: .84rem; line-height: 1.55; color: hsl(var(--muted-foreground)); }
+  .card .foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: .5rem; border-top: 1px dashed hsl(var(--border)); }
+  .card .count { font-size: .75rem; color: hsl(var(--muted-foreground)); }
+  .card .more { display: inline-flex; align-items: center; gap: .25rem; font-size: .78rem; font-weight: 600; color: hsl(var(--brand)); }
+  .card .more svg { transition: transform .2s; }
+  .card:hover .more svg { transform: translateX(3px); }
+
+  .empty { text-align: center; padding: 4rem 1rem; color: hsl(var(--muted-foreground)); grid-column: 1 / -1; }
+  .empty .big { display: grid; place-items: center; margin-bottom: .75rem; color: hsl(var(--muted-foreground)); }
+
+  /* ---------- Dialog ---------- */
+  .overlay {
+    position: fixed; inset: 0; z-index: 100; display: flex; justify-content: center;
+    align-items: flex-end; padding: 0;
+    background: hsl(240 10% 4% / .55); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+    animation: fade .18s ease both;
+  }
+  @media (min-width: 640px) { .overlay { align-items: center; padding: 1.5rem; } }
+  .dialog {
+    width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto;
+    background: hsl(var(--card)); border: 1px solid hsl(var(--border));
+    border-radius: var(--radius) var(--radius) 0 0;
+    box-shadow: 0 30px 70px -25px hsl(0 0% 0% / .5); padding: 1.5rem;
+    animation: pop .28s cubic-bezier(.22,1,.36,1) both;
+  }
+  @media (min-width: 640px) { .dialog { border-radius: var(--radius); } }
+  .dialog-head { display: flex; align-items: flex-start; gap: .9rem; }
+  .dialog-head .emoji { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: hsl(var(--brand) / .1); color: hsl(var(--brand)); flex-shrink: 0; }
+  .dialog-head h2 { margin: .1rem 0 .3rem; font-size: 1.3rem; letter-spacing: -.02em; }
+  .dialog-head .cat-badge { display: inline-block; }
+  .dialog-close { margin-left: auto; flex-shrink: 0; }
+  .dialog .lead { color: hsl(var(--muted-foreground)); font-size: .9rem; margin: 1rem 0 1.25rem; }
+
+  .variant-tabs { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .vtab {
+    font: inherit; font-size: .8rem; font-weight: 500; cursor: pointer;
+    padding: .4rem .8rem; border-radius: 999px;
+    border: 1px solid hsl(var(--border)); background: transparent; color: hsl(var(--muted-foreground));
+    transition: .15s;
+  }
+  .vtab:hover { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+  .vtab.active { background: hsl(var(--brand)); border-color: hsl(var(--brand)); color: #fff; }
+
+  .ing-title { display: flex; align-items: center; gap: .45rem; font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: hsl(var(--muted-foreground)); margin: 0 0 .7rem; }
+  .ing-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+  .ing-list li { display: flex; align-items: center; gap: .7rem; padding: .65rem .85rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) - 4px); background: hsl(var(--background)); font-size: .88rem; }
+  .ing-list li::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: hsl(var(--brand)); flex-shrink: 0; }
+  .ing-list li { cursor: pointer; user-select: none; -webkit-user-select: none; }
+  .ing-list li.done .txt { opacity: .5; text-decoration: line-through; }
+  .ing-list li.done::before { content: "✓"; width: auto; height: auto; background: none; color: #16a34a; font-weight: 800; font-size: .95rem; }
+  .ing-prog { margin-left: auto; font-weight: 600; text-transform: none; letter-spacing: 0; }
+
+  /* ---------- Card favorite ---------- */
+  .top-right { display: flex; align-items: center; gap: .45rem; }
+  .fav {
+    width: 30px; height: 30px; border-radius: 9px; cursor: pointer;
+    display: grid; place-items: center;
+    border: 1px solid hsl(var(--border)); background: transparent;
+    color: hsl(var(--muted-foreground)); transition: .15s;
+  }
+  .fav:hover { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+  .fav:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+  .fav.on { background: #e11d48; border-color: #e11d48; color: #fff; }
+  .fav.on svg { fill: currentColor; }
+
+  /* ---------- Dialog actions ---------- */
+  .act-row { display: flex; gap: .5rem; margin-top: 1.1rem; }
+  .act-row .btn { flex: 1; height: 2.6rem; font-weight: 600; }
+  .act-wa { background: #1faa53; border-color: #1faa53; color: #fff; }
+  .act-wa:hover { background: #178a43; border-color: #178a43; }
+  .act-print { flex: 0 0 2.6rem !important; padding: 0 !important; }
+  .wa-form { display: flex; gap: .5rem; margin-top: .5rem; }
+  .wa-form[hidden] { display: none; }
+  .wa-input {
+    flex: 1; min-width: 0; height: 2.6rem;
+    border-radius: calc(var(--radius) - 3px);
+    border: 1px solid hsl(var(--border)); background: hsl(var(--background));
+    padding: 0 .8rem; font: inherit; font-size: .88rem; color: inherit; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .wa-input::placeholder { color: hsl(var(--muted-foreground)); }
+  .wa-input:focus { border-color: hsl(var(--ring)); box-shadow: 0 0 0 3px hsl(var(--ring) / .22); }
+  .act-wa-send { flex: 0 0 auto !important; padding: 0 1.1rem !important; }
+  .print-only { display: none; }
+
+  /* ---------- Toast ---------- */
+  #toast {
+    position: fixed; left: 50%; bottom: 1.5rem; z-index: 130;
+    transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+    background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+    padding: .6rem 1.15rem; border-radius: 999px;
+    font-size: .85rem; font-weight: 600; box-shadow: var(--shadow);
+    transition: opacity .25s, transform .25s;
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media print {
+    .site-header, .toolbar, .hero, footer, #toTop, .pal-overlay,
+    .variant-tabs, .dialog-close, .act-row, .wa-form, #toast { display: none !important; }
+    body { background: #fff; color: #000; }
+    .overlay { position: static; display: block; padding: 0; background: none; backdrop-filter: none; animation: none; }
+    .dialog { box-shadow: none; border: 0; border-radius: 0; max-height: none; animation: none; }
+    .dialog .lead { color: #333; }
+    .dialog-head .emoji { background: #eee; color: #000; }
+    .cat-badge { color: #000; border-color: #999; background: none; }
+    .ing-title { color: #333; }
+    .ing-list li { background: #fff; border-color: #bbb; break-inside: avoid; }
+    .ing-list li.done .txt { opacity: 1; text-decoration: none; }
+    .ing-list li.done::before { color: #000; }
+    .print-only { display: block; font-weight: 700; margin: 0 0 .6rem; }
+  }
+
+  footer { border-top: 1px solid hsl(var(--border)); padding: 2.5rem 0 3rem; text-align: center; color: hsl(var(--muted-foreground)); font-size: .82rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; }
+    [data-reveal], .overlay, .dialog, .pal-overlay, .pal { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <div class="brand">
+      <span class="logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg></span>
+      <span>Resepkuu<small>Buku Resep</small></span>
+    </div>
+    <div class="actions">
+      <button class="btn btn-outline icon-btn" id="palBtn" aria-label="Cari resep" title="Cari resep ( / )">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+      </button>
+      <button class="btn btn-outline icon-btn" id="themeToggle" aria-label="Ganti tema" title="Ganti tema">
+      <svg id="themeIcon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.752 15.002A9.718 9.718 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 12 21.75a9.753 9.753 0 0 0 9.752-6.748Z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <span class="badge" data-reveal><span class="dot"></span> Standar Resep Minuman &amp; Makanan</span>
+    <h1 data-reveal>Semua resep <em>Resepkuu</em><br />di satu tempat.</h1>
+    <p data-reveal></p>
+    <div class="stats" data-reveal>
+      <div class="stat"><b id="statResep">0</b><span>Resep</span></div>
+      <div class="stat"><b id="statKategori">0</b><span>Kategori</span></div>
+      <div class="stat"><b id="statBahan">0</b><span>Item Bahan</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="toolbar">
+  <div class="wrap toolbar-row">
+    <button class="search-btn" id="searchBtn" data-reveal>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+      <span>Cari resep… (mis. sanger, yakult, nasi goreng)</span>
+      <kbd>/</kbd>
+    </button>
+    <div class="tabs" id="tabs" data-reveal></div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer>
+  <div class="wrap">Resepkuu &middot; Buku Resep &middot; <span id="year"></span></div>
+</footer>
+
+<div class="pal-overlay" id="palOverlay" hidden>
+  <div class="pal" role="dialog" aria-modal="true" aria-label="Cari resep">
+    <div class="pal-input-row">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+      <input id="palInput" placeholder="Ketik nama, bahan, atau kategori…" autocomplete="off" />
+      <kbd>esc</kbd>
+    </div>
+    <div class="pal-count" id="palCount"></div>
+    <div class="pal-list" id="palList"></div>
+    <div class="pal-foot">
+      <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> pilih</span>
+      <span><kbd>&crarr;</kbd> buka</span>
+      <span><kbd>esc</kbd> tutup</span>
+    </div>
+  </div>
+</div>
+
+<button id="toTop" aria-label="Kembali ke atas" title="Kembali ke atas">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19.5v-15m0 0-6.75 6.75M12 4.5l6.75 6.75"/></svg>
+</button>
+
+<div id="toast" role="status"></div>
+
+<script>
+const RECIPES = [
+  /* ============ COFFEE BASED ============ */
+  { id:"espresso", name:"Espresso", cat:"Coffee", emoji:"☕", desc:"Dasar semua minuman kopi: 18 gram bubuk halus, diekstraksi.",
+    variants:[ { label:"Base", items:["18 gr beans, giling Fine","Ekstraksi"] } ] },
+
+  { id:"americano", name:"Americano", cat:"Coffee", emoji:"🖤", desc:"Espresso diencerkan air — ringan, pahit bersih.",
+    variants:[
+      { label:"Regular (Iced)", items:["Espresso Fine 1 shot","Air mineral 90 ml","Es"] },
+      { label:"Hot", items:["Espresso Fine 1 shot","Air mineral panas 150–160 ml"] }
+    ] },
+
+  { id:"coffee-latte", name:"Coffee Latte", cat:"Coffee", emoji:"🥛", desc:"Espresso dengan susu lembut dan foam tipis.",
+    variants:[
+      { label:"Regular (Iced)", items:["Espresso Fine 1 shot","Susu UHT 80 ml","Creamer liquid 30 ml","Vanilla syrup 10 ml","Es"] },
+      { label:"Hot", items:["Espresso Fine 1 shot","Steam milk UHT 180–200 ml","Foam tipis"] }
+    ] },
+
+  { id:"cappuccino", name:"Cappuccino", cat:"Coffee", emoji:"🧋", desc:"Seimbang espresso, susu, dan foam tebal.",
+    variants:[
+      { label:"Regular (Iced)", items:["Espresso Fine 1 shot","Susu UHT 80 ml","Creamer liquid 30 ml","Vanilla syrup 10 ml","Es","Foam tebal"] },
+      { label:"Hot", items:["Espresso Fine 1 shot","Steam milk UHT 180–200 ml","Foam tebal","Powder chocolate (garnish di atas foam)"] }
+    ] },
+
+  { id:"sanger", name:"Sanger", cat:"Coffee", emoji:"🤎", desc:"Kopi susu khas dengan susu kental manis.",
+    variants:[
+      { label:"Regular (Iced)", items:["Espresso Fine 30 ml","Creamer liquid 15–20 ml","SKM 30 ml","Es","Shake"] },
+      { label:"Hot", items:["SKM Carnation 12–14 ml","Creamer powder 4–5 gr","Espresso Fine 1 shot","Mix (aduk)","Steam"] }
+    ] },
+
+  { id:"sanger-brown", name:"Sanger Brown Sugar", cat:"Coffee", emoji:"🍯", desc:"Sanger dengan manis karamel gula aren.",
+    variants:[
+      { label:"Regular (Iced)", items:["Espresso Fine 1 shot","Creamer liquid 15–20 ml","Aren syrup 20–22 ml","Es","Shake"] },
+      { label:"Hot", items:["Aren syrup 12 ml","Creamer powder 5 gr","Espresso Fine 1 shot"] }
+    ] },
+
+  { id:"coffee-pandan", name:"Coffee Pandan", cat:"Coffee", emoji:"🌿", desc:"Aroma pandan berpadu espresso.",
+    variants:[
+      { label:"Regular (Iced)", items:["Syrup pandan 2 pump / 20 ml","Creamer liquid 30 ml","UHT 80 ml","Espresso Coarse 1 shot","Es"] },
+      { label:"Hot", items:["Syrup pandan 1½ pump / 15 ml","Creamer powder 5 ml","Espresso Coarse 1 shot","Steam milk 180–200 ml"] },
+      { label:"Large (Iced)", items:["Syrup pandan 2½ pump / 25 ml","Creamer 35 ml","UHT 120 ml","Espresso Coarse 40 ml","Es"] }
+    ] },
+
+  { id:"coffee-choco", name:"Coffee Choco", cat:"Coffee", emoji:"🍫", desc:"Kopi cokelat creamy, dingin atau panas.",
+    variants:[
+      { label:"Regular (Iced)", items:["Chocolate powder 25 gr","SKM Mix 35 ml","Espresso Coarse 1 shot","Creamer liquid 20 ml","Air 40–50 ml","Es","Shake"] },
+      { label:"Hot", items:["Chocolate powder 10 gr","SKM Mix 10 ml","Espresso Coarse 1 shot","Creamer powder 5 ml","Steam milk 180–200 ml"] },
+      { label:"Large (Iced)", items:["Chocolate powder 30 gr","SKM Mix 40 ml","Espresso Coarse 40 ml","Creamer 35 ml","Air 60–70 ml","Es","Shake"] }
+    ] },
+
+  { id:"coffee-tiramisu", name:"Coffee Tiramisu", cat:"Coffee", emoji:"🍰", desc:"Manis lembut rasa tiramisu.",
+    variants:[
+      { label:"Regular (Iced)", items:["Syrup tiramisu 20 ml","Creamer liquid 30 ml","UHT 80 ml","Espresso Coarse 1 shot","Es"] },
+      { label:"Hot", items:["Syrup tiramisu 12 ml","Creamer powder 5 ml","Espresso Coarse 1 shot","Steam milk 180–200 ml"] },
+      { label:"Large (Iced)", items:["Syrup tiramisu 2½ pump / 25 ml","Creamer 35 ml","UHT 120 ml","Espresso Coarse 40 ml","Es"] }
+    ] },
+
+  { id:"coffee-avocado", name:"Coffee Avocado", cat:"Coffee", emoji:"🥑", desc:"Alpukat lembut bertemu kopi.",
+    variants:[
+      { label:"Regular (Iced)", items:["Avocado powder 25 gr","SKM Mix 35 ml","Espresso Coarse 1 shot","Creamer liquid 25 ml","Air 50 ml","Es","Shake"] },
+      { label:"Hot", items:["Avocado powder 13–15 ml","SKM Mix 18 ml","Espresso Coarse 1 shot","Creamer powder 5 ml","Steam milk 180–200 ml"] },
+      { label:"Large (Iced)", items:["Avocado powder 30 gr","SKM Mix 40 ml","Espresso Coarse 40 ml","Creamer 35 ml","Air 60–70 ml","Es","Shake"] }
+    ] },
+
+  { id:"coffee-lemon", name:"Coffee Lemon", cat:"Coffee", emoji:"🍋", desc:"Kopi dingin segar dengan perasan lemon.",
+    variants:[
+      { label:"Regular (Iced)", items:["Espresso Coarse 40 ml","Perasan lemon 10 ml","Lemon syrup 20 ml","Mojito syrup 5 ml","Simple syrup 15 ml","Water 40–50 ml","Es","Shake","Dry lemon (garnish)"] }
+    ] },
+
+  /* ============ SIGNATURE ============ */
+  { id:"resepkuu-signature", name:"Resepkuu Signature", cat:"Signature", emoji:"⭐", desc:"Signature house: aren, karamel, dan espresso.",
+    variants:[
+      { label:"Regular (Iced)", items:["Aren syrup 15 ml","Caramel sauce 10 ml","Creamer liquid 20 ml","Espresso Coarse 40 ml","UHT 80 ml","Es"] },
+      { label:"Hot", items:["Aren syrup 10 ml","Caramel sauce 5 ml","Creamer liquid 15 ml","Espresso Coarse 1 shot / 30 ml","Steam milk 180–200 ml"] },
+      { label:"Large (Iced)", items:["Aren syrup 20 ml","Caramel sauce 15 ml","Creamer liquid 25 ml","Espresso Coarse 2 shot / 30 ml","UHT 120 ml","Es"] }
+    ] },
+
+  { id:"resepkuu-brown-sugar", name:"Resepkuu Brown Sugar", cat:"Signature", emoji:"🟤", desc:"Brown sugar dengan garnish cup aren.",
+    variants:[
+      { label:"Regular (Iced)", items:["Garnish cup aren 20 ml","Creamer liquid 30 ml","Espresso Coarse 40 ml","UHT 80 ml","Es"] },
+      { label:"Hot", items:["Garnish cup aren 15–20 ml","Creamer liquid 15 ml","Espresso Coarse 1 shot / 30 ml","Steam milk 180–200 ml"] },
+      { label:"Large (Iced)", items:["Garnish cup aren 30–35 ml","Creamer liquid 35 ml","Espresso Coarse 2 shot / 30 ml","UHT 120 ml","Es"] }
+    ] },
+
+  { id:"caramel-machiato", name:"Caramel Macchiato", cat:"Signature", emoji:"🍮", desc:"Karamel berlapis dengan foam milk.",
+    variants:[
+      { label:"Regular (Iced)", items:["Caramel syrup 20 ml / 2 pump","Es","Creamer liquid 30 ml","UHT 80 ml","Caramel sauce 5 ml (garnish)","Espresso Coarse 30 ml","Foam milk","Caramel sauce di atas foam"] },
+      { label:"Hot", items:["Caramel syrup 15 ml / 1 pump","Creamer liquid 15 ml","Steam milk 180–200 ml","Foam milk","Caramel sauce (garnish)"] },
+      { label:"Large (Iced)", items:["Caramel syrup 30 ml / 3 pump","Es","Creamer liquid 35 ml","UHT 120 ml","Caramel garnish 10 ml","Espresso Coarse 40 ml","Foam milk"] }
+    ] },
+
+  { id:"klepon-signature", name:"Klepon Signature", cat:"Signature", emoji:"🍡", desc:"Rasa klepon gula aren, tanpa kopi.",
+    variants:[
+      { label:"Regular", items:["Powder 20 gr","Water","SKM 30 ml","Creamer liquid 5 ml","Es","Shake","Garnish cup aren"] },
+      { label:"Large", items:["Powder 25 gr","SKM 35 ml","Creamer liquid 10 ml","Es","Shake","Garnish cup aren"] }
+    ] },
+
+  { id:"coffee-klepon", name:"Coffee Klepon", cat:"Signature", emoji:"🌾", desc:"Klepon berpadu espresso coarse.",
+    variants:[
+      { label:"Regular", items:["Powder 25 gr","Espresso Coarse 30 ml","Creamer liquid 20 ml","SKM 35 ml","Es","Garnish cup aren","Shake"] },
+      { label:"Large", items:["Powder 35 gr","Espresso Coarse 40 ml","Creamer liquid 25 ml","SKM 40 ml","Es","Garnish cup aren","Shake"] }
+    ] },
+
+  { id:"creamy-strawberry", name:"Creamy Strawberry", cat:"Signature", emoji:"🍓", desc:"Stroberi creamy dengan selai sebagai garnish.",
+    variants:[
+      { label:"Regular", items:["Selai strawberry 25 gr (garnish)","SKM Mix 15 ml","Simple syrup 10 ml","Creamer bubuk 10 gr","Es 1 scoop","Shake"] },
+      { label:"Large", items:["Selai strawberry 30 gr (garnish)","SKM Mix 20 ml","Simple syrup 15 ml","Creamer bubuk 15 gr","Es 1 scoop","Shake"] }
+    ] },
+
+  /* ============ NON-COFFEE ============ */
+  { id:"lemon-tea", name:"Lemon Tea", cat:"Non-Coffee", emoji:"🍵", desc:"Teh lemon segar, panas atau dingin.",
+    variants:[
+      { label:"Regular", items:["Teh 1 sachet","Syrup lemon 5 ml","Hot water 50 ml","Es","Shake","Lemon dry (garnish)"] },
+      { label:"Hot", items:["Teh 1 sachet","Syrup lemon 10–12 ml","Hot water","Es","Shake","Lemon dry (garnish)"] },
+      { label:"Large", items:["Teh 2 sachet","Syrup lemon 10–12 ml","Hot water 60–70 ml","Es","Shake","Lemon dry (garnish)"] }
+    ] },
+
+  { id:"fruit-tea", name:"Peach / Lychee / Strawberry Tea", cat:"Non-Coffee", emoji:"🍑", desc:"Teh buah dengan soda dan nata de coco.",
+    variants:[
+      { label:"Regular", items:["Syrup 20 ml","Simple syrup 20–30 ml","Nata de coco 2 sendok","Teh 50 ml","Es","Soda 50 ml","Buah leci"] },
+      { label:"Hot", items:["Syrup 15 ml","Simple syrup 15 ml","Teh 50 ml","Water"] },
+      { label:"Large", items:["Syrup 30 ml","Simple syrup 35 ml","Nata de coco","Teh 50 ml","Es","Soda 70 ml","Buah leci"] }
+    ] },
+
+  { id:"powder-series", name:"Taro / Matcha / Chocolate / Avocado / Red Velvet", cat:"Non-Coffee", emoji:"🟣", desc:"Seri minuman bubuk creamy.",
+    variants:[
+      { label:"Regular", items:["Powder 20 gr","SKM Mix 30 ml","Hot water","Es","Creamer liquid 5 ml","Shake"] },
+      { label:"Hot", items:["Powder 10 gr","Hot water","SKM Mix 20 ml","Steam milk 180–200 ml"] },
+      { label:"Large", items:["Powder 25 gr","SKM Mix 35 ml","Hot water","Es","Creamer liquid 10 ml","Shake"] }
+    ] },
+
+  { id:"cookies-cream", name:"Cookies and Cream", cat:"Non-Coffee", emoji:"🍪", desc:"Vanilla, creamer, dan crumb biskuit.",
+    variants:[
+      { label:"Regular", items:["Vanilla syrup 20 ml","Creamer liquid 20 ml","SKM Mix 10 ml","Crumb 5 gr","UHT 80 ml","Es","Shake","Foam milk","Crumb 15 gr"] },
+      { label:"Large", items:["Vanilla syrup 25 ml","Creamer liquid 25 ml","SKM Mix 15 ml","Crumb 5 gr","UHT 120 ml","Es","Shake","Foam milk","Crumb 20 gr"] }
+    ] },
+
+  /* ============ MOCKTAIL ============ */
+  { id:"berry-mocktail", name:"Strawberry / Blueberry Mocktail", cat:"Mocktail", emoji:"🫐", desc:"Mocktail soda buah dengan selasih & mint.",
+    variants:[
+      { label:"Regular", items:["Syrup 30 ml","Es","Nata de coco 2 sendok","Selasih 2 sendok","Soda 100 ml","Daun mint","Simple syrup 10 ml"] },
+      { label:"Large", items:["Syrup 35 ml","Es","Nata de coco 3 sendok","Selasih 2 sendok","Soda 150 ml","Daun mint","Simple syrup 10 ml"] }
+    ] },
+
+  { id:"fruit-mojito", name:"Lychee / Blueberry Mojito", cat:"Mocktail", emoji:"🌱", desc:"Mojito buah segar tanpa alkohol.",
+    variants:[
+      { label:"Regular", items:["Syrup 20 ml","Extract lemon 5 ml","Syrup mojito 10 ml","Es","Nata de coco 2 sendok","Selasih 2 sendok","Soda 100 ml","Daun mint"] },
+      { label:"Large", items:["Syrup 25 ml","Extract lemon 10 ml","Syrup mojito 15 ml","Es","Nata de coco 3 sendok","Selasih 2 sendok","Soda 150 ml","Daun mint"] }
+    ] },
+
+  { id:"blue-ocean", name:"Blue Ocean", cat:"Mocktail", emoji:"🌊", desc:"Citrus biru segar dengan soda.",
+    variants:[
+      { label:"Regular", items:["Syrup citrus 20 ml","Syrup lemon 10 ml","Syrup orange 5 ml","Es","Nata de coco 2 sendok","Selasih 2 sendok","Soda 100 ml","Daun mint"] },
+      { label:"Large", items:["Syrup citrus 25 ml","Syrup lemon 15 ml","Syrup orange 10 ml","Es","Nata de coco 3 sendok","Selasih 2 sendok","Soda 150 ml","Daun mint"] }
+    ] },
+
+  /* ============ YAKULT SERIES ============ */
+  { id:"yakult-series", name:"Yakult Series", cat:"Yakult", emoji:"🥤", desc:"Orange, peach, lychee, blueberry, strawberry, mango, melon.",
+    variants:[
+      { label:"Regular", items:["Syrup 20 ml","Jelly 2 sendok","Es","Yakult 1 botol","UHT 80 ml"] },
+      { label:"Large", items:["Syrup 30 ml","Jelly 3 sendok","Es","Yakult 1 botol","UHT 120 ml"] }
+    ] },
+
+  /* ============ FOOD ============ */
+  { id:"bumbu-nasgor", name:"Bumbu Nasi Goreng", cat:"Food", emoji:"🍚", desc:"Bumbu dasar untuk seluruh varian nasi goreng.",
+    variants:[
+      { label:"Bahan", items:["Cabe merah 1 kg","Kemiri 50 gr / 6 butir","Bawang merah 5 (bawang gedek)","Bawang putih 5 siung","Terasi 7 permen","Teri ½ ons","Saori 5 sendok","Tomat 4 buah","Garam secukupnya","Royco 2 sdm","Air ½ liter","Gula ½ sdm"] }
+    ] },
+
+  { id:"sambal-matah", name:"Sambal Matah", cat:"Food", emoji:"🌶️", desc:"Sambal mentah khas Bali, disiram minyak panas.",
+    variants:[
+      { label:"Bahan", items:["Bawang merah 1 (besar)","Cabe setan 2","Daun bawang 3 (besar)","Sere secukupnya","Garam ½ sendok takar","Kaldu jamur 1 sendok takar","Siram minyak panas secukupnya"] }
+    ] },
+
+  { id:"saus-blackpepper", name:"Saus Blackpepper", cat:"Food", emoji:"🥩", desc:"Saus lada hitam untuk hidangan daging.",
+    variants:[
+      { label:"Bahan", items:["Cabe setan 1,5","Bawang merah 2","Saus blackpepper 2 sdm","Air putih 2 sdm","Garam ½ sendok takar","Kaldu jamur 1 sendok takar"] }
+    ] },
+
+  { id:"snack", name:"Snack & Gorengan", cat:"Food", emoji:"🍟", desc:"Share snack, kentang goreng, dan tempe goreng.",
+    variants:[
+      { label:"Share Snack", items:["Kentang 80 gr","Nugget 4 (potong 2 bagian)","Sosis 3 (potong 3 bagian)"] },
+      { label:"Kentang Goreng", items:["Kentang 120 gr"] },
+      { label:"Tempe Goreng", items:["Tempe potong 3, slice ¾"] }
+    ] },
+
+  { id:"nasgor-classic", name:"Nasi Goreng Classic / Ayam / Kampung", cat:"Food", emoji:"🍳", desc:"Bahan dasar nasi goreng varian classic.",
+    variants:[
+      { label:"Bahan", items:["Bawang merah","Bawang putih","Daun bawang","Daun sop","Bumbu nasi goreng","Nasi","Saos","Saori","Garam","Kaldu jamur"] }
+    ] },
+
+  { id:"nasgor-kampung-ayam", name:"Nasi Goreng Kampung Ayam", cat:"Food", emoji:"🐔", desc:"Nasi goreng kampung dengan ayam.",
+    variants:[
+      { label:"Bahan", items:["Bawang merah","Bawang putih","Daun bawang","Daun sop","Garam","Kaldu jamur"] }
+    ] },
+
+  { id:"nasgor-daun-jeruk", name:"Nasi Goreng Daun Jeruk", cat:"Food", emoji:"🍃", desc:"Nasi goreng aroma daun jeruk.",
+    variants:[
+      { label:"Bahan", items:["Bawang merah","Bawang putih","Daun bawang","Daun sop","Daun jeruk","Garam","Kaldu jamur"] }
+    ] },
+
+  { id:"sambal-penyet", name:"Sambal Penyet", cat:"Food", emoji:"🔥", desc:"Sambal penyet pedas dengan minyak panas.",
+    variants:[
+      { label:"Bahan", items:["Cabe setan 7","Bawang merah 4","Bawang putih 2","Garam","Kaldu jamur","Minyak panas"] }
+    ] }
+];
+
+const CATS = ["Semua", "Coffee", "Signature", "Non-Coffee", "Mocktail", "Yakult", "Food"];
+/* Heroicons (outline) — inline SVG so there is zero network dependency */
+const HI_PATHS = {
+  "book-open": "M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25",
+  "mug": "M5 10h11v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4v-5zM16 11.5h1a2.5 2.5 0 0 1 0 5h-1M8.5 7.5c-1-1.2 1-2 0-3.2M12.5 7.5c-1-1.2 1-2 0-3.2",
+  "cup": "M4.5 9h15M6.2 9h11.6l-1.1 10a2 2 0 0 1-2 1.8H9.3a2 2 0 0 1-2-1.8L6.2 9zM12.8 9l2.7-5.5",
+  "glass": "M7 5h10l-.9 15H7.9L7 5zM13 5l2.5-3",
+  "bottle": "M10 2.5h4V7l1.6 2.6V19a2 2 0 0 1-2 2h-3.2a2 2 0 0 1-2-2V9.6L10 7V2.5zM8.6 14h6.8",
+  "cloche": "M3.5 19.5h17M6.5 19.5a5.5 5.5 0 0 1 11 0M12 14v-1.6M12 10.9h.01",
+  "sparkles": "M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09zM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456z",
+  "search": "m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z",
+  "heart": "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z",
+  "copy": "M9 9h10v11H9zM5 15V4h10",
+  "chat": "M4 6.5h16v9H9.5L4 19.5v-13z",
+  "printer": "M7 8V3.5h10V8M7 17H4.5v-6.5h15V17H17M7 14.5h10v6H7z",
+  "x-mark": "M6 18 18 6M6 6l12 12",
+  "arrow-right": "M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+};
+function hi(name, size) {
+  return `<svg width="${size || 16}" height="${size || 16}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${HI_PATHS[name]}"/></svg>`;
+}
+const CAT_ICON_NAME = { "Semua": "book-open", "Coffee": "mug", "Signature": "sparkles", "Non-Coffee": "cup", "Mocktail": "glass", "Yakult": "bottle", "Food": "cloche" };
+
+document.getElementById("year").textContent = new Date().getFullYear();
+
+const grid = document.getElementById("grid");
+const tabsEl = document.getElementById("tabs");
+
+let activeCat = "Semua";
+let favOnly = false;
+let favs = new Set();
+try { favs = new Set(JSON.parse(localStorage.getItem("resepkuu-fav") || "[]")); } catch (e) { favs = new Set(); }
+
+function toggleFav(id) {
+  if (favs.has(id)) favs.delete(id); else favs.add(id);
+  try { localStorage.setItem("resepkuu-fav", JSON.stringify([...favs])); } catch (e) {}
+  renderTabs();
+  renderGrid();
+}
+
+const countItems = (r) => r.variants.reduce((n, v) => n + v.items.length, 0);
+
+document.getElementById("statResep").textContent = RECIPES.length;
+document.getElementById("statKategori").textContent = CATS.length - 1;
+document.getElementById("statBahan").textContent = RECIPES.reduce((n, r) => n + countItems(r), 0);
+
+function renderTabs() {
+  tabsEl.innerHTML = "";
+  const fb = document.createElement("button");
+  fb.className = "tab" + (favOnly ? " active" : "");
+  fb.innerHTML = `${hi("heart", 14)} Favorit <span class="n">${favs.size}</span>`;
+  fb.addEventListener("click", () => { favOnly = !favOnly; renderTabs(); renderGrid(); });
+  tabsEl.appendChild(fb);
+  CATS.forEach((cat) => {
+    const count = cat === "Semua" ? RECIPES.length : RECIPES.filter((r) => r.cat === cat).length;
+    const b = document.createElement("button");
+    b.className = "tab" + (cat === activeCat && !favOnly ? " active" : "");
+    b.innerHTML = `${hi(CAT_ICON_NAME[cat], 14)} ${cat} <span class="n">${count}</span>`;
+    b.addEventListener("click", () => { activeCat = cat; favOnly = false; renderTabs(); renderGrid(); });
+    tabsEl.appendChild(b);
+  });
+}
+
+function matches(r) {
+  if (favOnly && !favs.has(r.id)) return false;
+  if (activeCat !== "Semua" && r.cat !== activeCat) return false;
+  return true;
+}
+
+function renderGrid() {
+  const list = RECIPES.filter(matches);
+  grid.innerHTML = "";
+
+  if (!list.length) {
+    const e = document.createElement("div");
+    e.className = "empty";
+    e.innerHTML = favOnly
+      ? `<div class="big">${hi("heart", 40)}</div><p>Belum ada favorit.<br />Tap ikon hati di resep untuk menyimpan.</p>`
+      : `<div class="big">${hi("search", 40)}</div><p>Tidak ada resep di sini.</p>`;
+    grid.appendChild(e);
+    return;
+  }
+
+  list.forEach((r) => {
+    const card = document.createElement("article");
+    card.className = "card";
+    card.setAttribute("data-reveal", "");
+    card.setAttribute("tabindex", "0");
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-label", r.name);
+    card.innerHTML = `
+      <div class="top">
+        <span class="emoji">${hi(CAT_ICON_NAME[r.cat], 22)}</span>
+        <span class="top-right">
+          <span class="cat-badge">${r.cat}</span>
+          <button class="fav${favs.has(r.id) ? " on" : ""}" aria-label="Simpan ke favorit" title="Simpan ke favorit">${hi("heart", 15)}</button>
+        </span>
+      </div>
+      <h3>${r.name}</h3>
+      <p>${r.desc}</p>
+      <div class="foot">
+        <span class="count">${r.variants.length} varian &middot; ${countItems(r)} item</span>
+        <span class="more">Lihat ${hi("arrow-right", 14)}
+        </span>
+      </div>`;
+    card.addEventListener("click", (ev) => {
+      if (ev.target.closest(".fav")) return;
+      openDialog(r);
+    });
+    card.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); openDialog(r); }
+    });
+    card.querySelector(".fav").addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      toggleFav(r.id);
+    });
+    grid.appendChild(card);
+  });
+
+  revealCards();
+}
+
+/* ---------- Reveal (CSS-only; kept as no-op for compatibility) ---------- */
+function revealCards() {}
+
+/* ---------- Dialog ---------- */
+let overlay = null;
+
+function openDialog(r) {
+  closeDialog(true);
+
+  overlay = document.createElement("div");
+  overlay.className = "overlay";
+  overlay.innerHTML = `
+    <div class="dialog" role="dialog" aria-modal="true" aria-label="${r.name}">
+      <div class="dialog-head">
+        <span class="emoji">${hi(CAT_ICON_NAME[r.cat], 26)}</span>
+        <div>
+          <h2>${r.name}</h2>
+          <span class="cat-badge">${r.cat}</span>
+        </div>
+        <button class="btn btn-ghost icon-btn dialog-close" aria-label="Tutup">
+          ${hi("x-mark", 18)}
+        </button>
+      </div>
+      <p class="lead">${r.desc}</p>
+      <div class="variant-tabs"></div>
+      <p class="ing-title">Bahan / Takaran <span class="ing-prog"></span></p>
+      <ul class="ing-list"></ul>
+      <div class="act-row">
+        <button class="btn btn-outline act-copy">${hi("copy", 15)} Salin</button>
+        <button class="btn act-wa">${hi("chat", 15)} WhatsApp</button>
+        <button class="btn btn-outline act-print" aria-label="Cetak resep" title="Cetak resep">${hi("printer", 16)}</button>
+      </div>
+      <div class="wa-form" hidden>
+        <input class="wa-input" inputmode="tel" placeholder="Nomor WA tujuan, mis. 081234567890" aria-label="Nomor WhatsApp tujuan" />
+        <button class="btn act-wa act-wa-send">Kirim</button>
+      </div>
+      <p class="print-only print-variant"></p>
+    </div>`;
+
+  const vTabs = overlay.querySelector(".variant-tabs");
+  const listEl = overlay.querySelector(".ing-list");
+  const printVariant = overlay.querySelector(".print-variant");
+  printVariant.textContent = "Varian: " + r.variants[0].label;
+
+  r.variants.forEach((v, i) => {
+    const b = document.createElement("button");
+    b.className = "vtab" + (i === 0 ? " active" : "");
+    b.textContent = v.label;
+    b.addEventListener("click", () => {
+      vTabs.querySelectorAll(".vtab").forEach((x) => x.classList.remove("active"));
+      b.classList.add("active");
+      printVariant.textContent = "Varian: " + v.label;
+      showItems(listEl, v.items);
+    });
+    vTabs.appendChild(b);
+  });
+  showItems(listEl, r.variants[0].items);
+
+  listEl.addEventListener("click", (e) => {
+    const li = e.target.closest("li");
+    if (!li) return;
+    li.classList.toggle("done");
+    updateProg();
+  });
+
+  overlay.querySelector(".act-copy").addEventListener("click", () => copyText(recipeText(r, currentVariantIdx())));
+  const waForm = overlay.querySelector(".wa-form");
+  const waInput = overlay.querySelector(".wa-input");
+  try { waInput.value = localStorage.getItem("resepkuu-wa-num") || ""; } catch (e) {}
+  overlay.querySelector(".act-wa").addEventListener("click", () => {
+    waForm.hidden = !waForm.hidden;
+    if (!waForm.hidden) setTimeout(() => waInput.focus(), 30);
+  });
+  const sendWA = () => {
+    const num = normWA(waInput.value);
+    if (!num) { toast("Nomor WA tidak valid"); waInput.focus(); return; }
+    try { localStorage.setItem("resepkuu-wa-num", waInput.value.trim()); } catch (e) {}
+    window.open("https://wa.me/" + num + "?text=" + encodeURIComponent(recipeText(r, currentVariantIdx())), "_blank");
+  };
+  overlay.querySelector(".act-wa-send").addEventListener("click", sendWA);
+  waInput.addEventListener("keydown", (e) => { if (e.key === "Enter") sendWA(); });
+  overlay.querySelector(".act-print").addEventListener("click", () => window.print());
+
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) closeDialog(); });
+  overlay.querySelector(".dialog-close").addEventListener("click", () => closeDialog());
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = "hidden";
+}
+
+function currentVariantIdx() {
+  const tabs = overlay ? overlay.querySelectorAll(".vtab") : [];
+  for (let i = 0; i < tabs.length; i++) {
+    if (tabs[i].classList.contains("active")) return i;
+  }
+  return 0;
+}
+
+function updateProg() {
+  if (!overlay) return;
+  const listEl = overlay.querySelector(".ing-list");
+  const prog = overlay.querySelector(".ing-prog");
+  if (!listEl || !prog) return;
+  const total = listEl.children.length;
+  const done = listEl.querySelectorAll("li.done").length;
+  prog.textContent = total ? `${done}/${total} siap` : "";
+}
+
+function recipeText(r, idx) {
+  const v = r.variants[idx] || r.variants[0];
+  return `${r.name} — ${v.label}\n${v.items.map((it, i) => `${i + 1}. ${it}`).join("\n")}`;
+}
+
+/* Nomor WA tujuan: terima 08…, 62…, +62… → format internasional tanpa "+" */
+function normWA(raw) {
+  let d = String(raw || "").replace(/\D/g, "");
+  if (!d) return "";
+  if (d.startsWith("0")) d = "62" + d.slice(1);
+  else if (!d.startsWith("62")) d = "62" + d;
+  if (!/^62\d{8,13}$/.test(d)) return "";
+  return d;
+}
+
+function showItems(listEl, items) {
+  listEl.innerHTML = "";
+  items.forEach((it) => {
+    const li = document.createElement("li");
+    const s = document.createElement("span");
+    s.className = "txt";
+    s.textContent = it;
+    li.appendChild(s);
+    listEl.appendChild(li);
+  });
+  updateProg();
+}
+
+let toastTimer = null;
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+}
+
+function copyText(t) {
+  const done = () => toast("Resep disalin ✓");
+  const fallback = () => {
+    const ta = document.createElement("textarea");
+    ta.value = t;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); done(); }
+    catch (e) { toast("Gagal menyalin"); }
+    ta.remove();
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(t).then(done).catch(fallback);
+  } else {
+    fallback();
+  }
+}
+
+function onEsc(e) {
+  if (e.key !== "Escape") return;
+  if (palOpen) closePalette();
+  else closeDialog();
+}
+
+function closeDialog() {
+  if (!overlay) return;
+  overlay.remove();
+  overlay = null;
+  document.body.style.overflow = "";
+}
+
+/* ---------- Search palette ("/" / Ctrl+K) ---------- */
+const palOverlay = document.getElementById("palOverlay");
+const palInput = document.getElementById("palInput");
+const palList = document.getElementById("palList");
+const palCount = document.getElementById("palCount");
+let palOpen = false;
+let palActive = 0;
+let palResults = [];
+
+function palHay(r) {
+  return (r.name + " " + r.desc + " " + r.cat + " " + r.variants.map(v => v.label + " " + v.items.join(" ")).join(" ")).toLowerCase();
+}
+
+function openPalette() {
+  if (palOpen) return;
+  closeDialog();
+  palOpen = true;
+  palOverlay.hidden = false;
+  document.body.style.overflow = "hidden";
+  palInput.value = "";
+  renderPal("");
+  setTimeout(() => palInput.focus(), 30);
+}
+
+function closePalette() {
+  if (!palOpen) return;
+  palOpen = false;
+  palOverlay.hidden = true;
+  if (!overlay) document.body.style.overflow = "";
+}
+
+function renderPal(q) {
+  q = q.trim().toLowerCase();
+  palResults = q
+    ? RECIPES.filter((r) => q.split(/\s+/).every((w) => palHay(r).includes(w)))
+    : RECIPES.slice();
+  palActive = 0;
+  palList.innerHTML = "";
+  palCount.textContent = q ? `${palResults.length} hasil` : `${RECIPES.length} resep — ketik untuk memfilter`;
+
+  if (!palResults.length) {
+    const d = document.createElement("div");
+    d.className = "pal-empty";
+    d.textContent = `Tidak ada hasil untuk "${q}".`;
+    palList.appendChild(d);
+    return;
+  }
+
+  palResults.forEach((r, i) => {
+    const b = document.createElement("button");
+    b.className = "pal-row" + (i === 0 ? " active" : "");
+    b.innerHTML = `
+      <span class="emoji">${hi(CAT_ICON_NAME[r.cat], 19)}</span>
+      <span class="t"><b>${r.name}</b><span>${r.cat} &middot; ${r.variants.map(v => v.label).join(" · ")}</span></span>
+      ${hi("arrow-right", 15)}`;
+    b.addEventListener("click", () => { closePalette(); openDialog(r); });
+    b.addEventListener("mousemove", () => palHighlight(i));
+    palList.appendChild(b);
+  });
+}
+
+function palHighlight(i) {
+  palActive = i;
+  palList.querySelectorAll(".pal-row").forEach((el, j) => el.classList.toggle("active", j === i));
+}
+
+function palChoose() {
+  const r = palResults[palActive];
+  if (!r) return;
+  closePalette();
+  openDialog(r);
+}
+
+palInput.addEventListener("input", () => renderPal(palInput.value));
+palInput.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    if (!palResults.length) return;
+    palHighlight((palActive + (e.key === "ArrowDown" ? 1 : -1) + palResults.length) % palResults.length);
+    const el = palList.querySelectorAll(".pal-row")[palActive];
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest" });
+  } else if (e.key === "Enter") {
+    palChoose();
+  }
+});
+palOverlay.addEventListener("click", (e) => { if (e.target === palOverlay) closePalette(); });
+document.getElementById("searchBtn").addEventListener("click", openPalette);
+document.getElementById("palBtn").addEventListener("click", openPalette);
+
+/* ---------- Global shortcuts ---------- */
+document.addEventListener("keydown", onEsc);
+document.addEventListener("keydown", (e) => {
+  const tag = (document.activeElement && document.activeElement.tagName) || "";
+  const typing = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+  if ((e.key === "/" && !typing && !e.ctrlKey && !e.metaKey) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k")) {
+    e.preventDefault();
+    if (palOpen) closePalette();
+    else openPalette();
+  }
+});
+
+/* ---------- Back to top ---------- */
+const toTop = document.getElementById("toTop");
+window.addEventListener("scroll", () => {
+  toTop.classList.toggle("show", window.scrollY > 600);
+}, { passive: true });
+toTop.addEventListener("click", () => {
+  let smooth = true;
+  try { smooth = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); } catch (e) {}
+  window.scrollTo({ top: 0, behavior: smooth ? "smooth" : "auto" });
+});
+
+/* ---------- Theme ---------- */
+const root = document.documentElement;
+let saved = null;
+try { saved = localStorage.getItem("resepkuu-theme"); } catch (e) {}
+let prefersDark = false;
+try { prefersDark = !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches); } catch (e) {}
+if (saved === "dark" || (!saved && prefersDark)) {
+  root.classList.add("dark");
+}
+function syncIcon() {
+  const dark = root.classList.contains("dark");
+  document.getElementById("themeIcon").innerHTML = dark
+    ? '<path d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/>'
+    : '<path d="M21.752 15.002A9.718 9.718 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 12 21.75a9.753 9.753 0 0 0 9.752-6.748Z"/>';
+}
+syncIcon();
+document.getElementById("themeToggle").addEventListener("click", () => {
+  root.classList.toggle("dark");
+  try { localStorage.setItem("resepkuu-theme", root.classList.contains("dark") ? "dark" : "light"); } catch (e) {}
+  syncIcon();
+});
+
+/* ---------- Init ---------- */
+renderTabs();
+renderGrid();
+</script>
+</body>
+</html>
